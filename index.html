@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#efe5cf">
+<title>一笔江山</title>
+<style>
+:root{--paper:#efe5cf;--ink:#1d1a16;--red:#b2291f;--muted:#6f6352}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#24221e;overflow:hidden;overscroll-behavior:none}
+body{font-family:"STKaiti","KaiTi","Kaiti SC","楷体","Songti SC","SimSun",serif;color:var(--ink);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#app{position:fixed;top:0;bottom:0;left:0;right:0;max-width:560px;margin:0 auto;background:var(--paper);overflow:hidden}
+#cv{position:absolute;left:0;top:0;width:100%;height:100%;touch-action:none;display:block}
+.layer{position:absolute;left:0;top:0;right:0;bottom:0;display:none}
+.layer.on{display:flex}
+button,input{font-family:inherit}
+.btn{border:1px solid #3a2f24;background:rgba(250,244,230,.6);padding:9px 14px;font-size:16px;letter-spacing:.15em;color:#2a231c;cursor:pointer;border-radius:3px;text-decoration:none;display:inline-block}
+.btn.red{background:var(--red);color:#f7efde;border-color:var(--red)}
+.btn:active{transform:translateY(1px)}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+/* 首页 */
+#home{flex-direction:column;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 6vh) 18px calc(env(safe-area-inset-bottom) + 16px)}
+.logo-wrap{text-align:center}
+.logo{font-size:min(17vw,86px);letter-spacing:.14em;font-weight:700;line-height:1.1;text-shadow:0 0 20px rgba(239,229,207,1),0 0 6px rgba(239,229,207,1)}
+.logo .seal{display:inline-block;vertical-align:middle;font-size:.2em;line-height:1.05;letter-spacing:0;background:var(--red);color:#f6ecda;padding:.25em .2em;writing-mode:vertical-rl;margin-left:.15em;border-radius:3px;transform:translateY(-.4em) rotate(4deg);text-shadow:none}
+.sub{margin-top:10px;font-size:15px;color:#4c4235;letter-spacing:.45em;text-shadow:0 0 10px #efe5cf}
+.panel{background:rgba(245,238,222,.9);border:1px solid rgba(90,70,50,.25);border-radius:4px;padding:14px;box-shadow:0 6px 30px rgba(60,40,20,.12)}
+.name{display:flex;align-items:center;gap:10px;font-size:17px;margin-bottom:12px}
+.name input{flex:1;font-size:16px;padding:7px 10px;border:none;border-bottom:1px solid #6b5a46;background:transparent;outline:none;color:var(--ink);letter-spacing:.1em}
+.levels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.lv{position:relative;border:1px solid rgba(60,45,30,.3);background:rgba(255,251,240,.75);padding:12px 10px 10px;cursor:pointer;border-radius:3px;transition:background .2s}
+.lv:hover{background:#fffaf0}
+.lv b{font-size:24px;letter-spacing:.25em}
+.lv i{font-style:normal;display:block;font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.5}
+.lv .best{position:absolute;right:7px;top:8px;background:var(--red);color:#f6ecda;font-size:12px;padding:2px 4px;border-radius:2px;transform:rotate(5deg)}
+.lv.free{background:rgba(240,232,212,.75)}
+
+/* 游戏 HUD */
+#hud{pointer-events:none;flex-direction:column}
+.hud-top{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 10px) 12px 6px}
+.icon{pointer-events:auto;flex:none;width:34px;height:34px;border:1px solid rgba(40,30,20,.35);background:rgba(244,236,218,.8);border-radius:50%;font-size:15px;cursor:pointer;color:#2a231c}
+.lvname{font-size:20px;letter-spacing:.2em;flex:none}
+.inkbox{flex:1;display:flex;align-items:center;gap:6px;font-size:16px}
+.inkbar{flex:1;height:10px;background:rgba(60,45,30,.13);border-radius:5px;overflow:hidden}
+#inkFill{height:100%;width:100%;background:linear-gradient(90deg,#14110e,#3d362d);border-radius:5px}
+#inkFill.low{background:#9a2c22}
+.score{font-size:15px;white-space:nowrap;flex:none}
+.score b{color:var(--red);font-size:18px}
+.progress{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 14px);height:3px;background:rgba(60,45,30,.15)}
+#prog{height:100%;width:0;background:var(--red)}
+.hint,.pause{position:absolute;left:50%;top:60%;transform:translate(-50%,-50%);text-align:center;background:rgba(246,239,224,.93);padding:16px 22px;border:1px solid rgba(60,45,30,.3);display:none;line-height:1.85;font-size:16px;white-space:nowrap;border-radius:3px;box-shadow:0 6px 30px rgba(60,40,20,.15)}
+.hint.on,.pause.on{display:block}
+.big{font-size:26px;letter-spacing:.3em;margin-bottom:4px}
+.hint em,.pause em{font-style:normal;color:var(--red)}
+.pause .row{margin-top:10px}
+.pause button{pointer-events:auto}
+.toast{position:absolute;left:0;right:0;top:36%;text-align:center;font-size:76px;font-weight:700;letter-spacing:.3em;opacity:0;transition:opacity .35s,transform .6s;transform:scale(1.3);pointer-events:none;text-shadow:0 0 18px #efe5cf}
+.toast.on{opacity:1;transform:scale(1)}
+
+/* 结算 */
+#result{pointer-events:none}
+.res-panel{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);top:60%;overflow:auto;opacity:0;transform:translateY(14px);transition:opacity .6s,transform .6s;background:rgba(247,240,224,.95);border:1px solid rgba(80,60,40,.25);padding:14px 16px;border-radius:4px;pointer-events:none}
+.res-panel.on{opacity:1;transform:none;pointer-events:auto}
+.res-head{display:flex;gap:14px;align-items:center;margin-bottom:10px}
+.rating{width:60px;height:60px;background:var(--red);color:#f6ecda;writing-mode:vertical-rl;font-size:23px;font-weight:700;display:flex;align-items:center;justify-content:center;transform:rotate(-5deg);border-radius:4px;flex:none;box-shadow:inset 0 0 0 3px rgba(246,236,218,.55)}
+.res-title{font-size:24px;letter-spacing:.1em}
+.res-meta{font-size:13px;color:var(--muted);margin-top:3px}
+.poem{border-top:1px solid rgba(80,60,40,.2);border-bottom:1px solid rgba(80,60,40,.2);padding:8px 0;margin-bottom:8px}
+.poem .tag{font-size:12px;color:var(--red);letter-spacing:.2em}
+.poem p{font-size:18px;line-height:1.6;letter-spacing:.06em}
+.poem small{display:block;text-align:right;font-size:12px;color:var(--muted);margin-bottom:2px}
+.res-stats{font-size:12px;letter-spacing:-.02em;color:#4a4034;margin-bottom:12px;text-align:center}
+.res-tip{position:absolute;left:0;right:0;bottom:22%;text-align:center;font-size:18px;letter-spacing:.5em;color:#5b4f40;transition:opacity .4s}
+
+/* 弹窗 */
+.modal{position:absolute;left:0;top:0;right:0;bottom:0;display:none;background:rgba(25,20,15,.55);align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal.on{display:flex}
+.mbox{background:#f4ecda;max-height:90%;overflow:auto;width:100%;padding:18px;border-radius:4px;border:1px solid rgba(80,60,40,.3);font-size:15px;line-height:1.75}
+.mbox h3{font-size:22px;letter-spacing:.2em;margin-bottom:8px}
+.mbox h4{font-size:16px;margin:10px 0 2px;color:var(--red);letter-spacing:.1em}
+.mbox label{display:block;margin:8px 0;font-size:14px}
+.mbox input{display:block;width:100%;font-size:15px;padding:6px 8px;border:1px solid #b9a98c;background:#fffaf0;margin-top:3px;font-family:Consolas,monospace}
+.note{font-size:13px;color:var(--muted)}
+.share-box{text-align:center;width:100%;max-height:100%;display:flex;flex-direction:column;gap:10px;align-items:center}
+.share-box img{max-width:100%;max-height:72vh;box-shadow:0 8px 40px rgba(0,0,0,.5);-webkit-touch-callout:default;user-select:auto}
+.share-box p{color:#efe5cf;font-size:15px;letter-spacing:.2em}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="cv"></canvas>
+
+  <div id="home" class="layer on">
+    <div class="logo-wrap">
+      <div class="logo">一笔江山<span class="seal">丹青</span></div>
+      <div class="sub">一笔落纸 · 化作千里江山</div>
+    </div>
+    <div class="panel">
+      <label class="name">名号<input id="nameIn" maxlength="4" placeholder="无名氏（用于刻印）"></label>
+      <div class="levels" id="levels"></div>
+      <div class="row">
+        <button class="btn" id="btnHow">玩法</button>
+        <button class="btn" id="btnSet">AI 题诗</button>
+        <button class="btn" id="btnMute">声：开</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="hud" class="layer">
+    <div class="hud-top">
+      <button class="icon" id="btnQuit" title="返回">✕</button>
+      <div class="lvname" id="hudLv">平远</div>
+      <div class="inkbox" id="inkbox"><span>墨</span><div class="inkbar"><div id="inkFill"></div></div></div>
+      <div class="score" id="hudScoreBox"><b id="hudSeal">0</b> 印 · <span id="hudScore">0</span></div>
+    </div>
+    <div class="progress"><div id="prog"></div></div>
+    <div class="hint" id="hint"></div>
+    <div class="pause" id="pauseBox">
+      <div class="big">笔离纸面</div>
+      <div>按住任意处续笔<span id="liftCost">（断笔 <em>−80</em>）</span></div>
+      <div class="row"><button class="btn red" id="btnFinish">收笔成画</button></div>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <div id="result" class="layer">
+    <div class="res-tip" id="resTip">化 境 中 · 轻 触 跳 过</div>
+    <div class="res-panel" id="resPanel">
+      <div class="res-head">
+        <div class="rating" id="resRating">神品</div>
+        <div><div class="res-title" id="resTitle"></div><div class="res-meta" id="resMeta"></div></div>
+      </div>
+      <div class="poem" id="resPoem"></div>
+      <div class="res-stats" id="resStats"></div>
+      <div class="row">
+        <button class="btn red" id="btnShare">生成长卷图</button>
+        <button class="btn" id="btnAgain">再画一卷</button>
+        <button class="btn" id="btnHome">换一境</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shareM" class="modal">
+    <div class="share-box">
+      <img id="shareImg" alt="一笔江山长卷">
+      <p>长按图片保存 · 发给好友</p>
+      <div class="row"><a class="btn red" id="dl" download="一笔江山.jpg">下载图片</a><button class="btn" data-close>关闭</button></div>
+    </div>
+  </div>
+
+  <div id="howM" class="modal">
+    <div class="mbox">
+      <h3>玩法</h3>
+      <p>按住屏幕落笔，画卷自左向右展开。手指<b>上下移动</b>，笔锋走过的线就是山脊。</p>
+      <h4>一局之中</h4>
+      <p>· <b style="color:#b2291f">朱印</b>：笔锋经过即收，每枚 +100<br>
+         · <b>留白</b>（云气）：画进去即“破白”，−150。古人讲“计白当黑”<br>
+         · <b>墨</b>：起伏越大越费墨，墨尽收笔；拾取墨滴可添墨<br>
+         · <b>提笔</b>：手指离开屏幕即停笔，续笔记一次“断笔” −80</p>
+      <h4>化境</h4>
+      <p>收笔后，你的一笔会长成一幅青绿山水长卷：高处成峰、陡处成瀑、低处成江，并由 AI 为画作题跋、命名、盖上你的名章。</p>
+      <h4>三远</h4>
+      <p>北宋郭熙《林泉高致》：“山有三远：自山下而仰山巅，谓之高远；自山前而窥山后，谓之深远；自近山而望远山，谓之平远。”三关即三远，另有不计分的“自在”卷。</p>
+      <h4>四品</h4>
+      <p>能品 → 妙品 → 神品 → <b>逸品</b>。逸品须画完全卷、朱印收九成、不破白、不断笔，且余墨不少于四分之一。</p>
+      <div class="row" style="margin-top:12px"><button class="btn red" data-close>知道了</button></div>
+    </div>
+  </div>
+
+  <div id="setM" class="modal">
+    <div class="mbox">
+      <h3>AI 题诗</h3>
+      <p class="note">默认由内置诗库为画作“集句”题跋（按画面的山势、瀑布、江面、云气挑选古人名句），离线可用。<br>填写兼容 OpenAI 格式的大模型接口后，改为实时原创题诗；请求失败会自动回退到集句。</p>
+      <label>接口地址<input id="aiUrl" placeholder="https://api.deepseek.com/chat/completions"></label>
+      <label>模型<input id="aiModel" placeholder="deepseek-chat"></label>
+      <label>密钥<input id="aiKey" type="password" placeholder="sk-..."></label>
+      <p class="note">密钥只保存在本机浏览器。正式上线请改为服务端转发，不要把密钥写进页面。</p>
+      <div class="row" style="margin-top:10px"><button class="btn red" id="aiSave">保存</button><button class="btn" id="aiClear">清除</button><button class="btn" data-close>关闭</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* =========================================================
+   一笔江山 · lofi 可玩原型
+   单文件、无外部依赖：Canvas 2D + Web Audio
+   ========================================================= */
+const $ = s => document.querySelector(s);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const sstep = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+const FONT = '"STKaiti","KaiTi","Kaiti SC","楷体","Songti SC","SimSun",serif';
+const WL = 860;            // 水线（世界坐标，画面高度 1000）
+const PAPER = '239,229,207';
+
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function makeNoise(rand) { const n = 512, v = []; for (let i = 0; i < n; i++) v.push(rand() * 2 - 1); return x => { const i = Math.floor(x), f = x - i, a = v[((i % n) + n) % n], b = v[(((i + 1) % n) + n) % n]; return a + (b - a) * f * f * (3 - 2 * f); }; }
+function fbm(nz, x, oct = 4) { let s = 0, a = 1, f = 1, n = 0; for (let i = 0; i < oct; i++) { s += nz(x * f + i * 31.7) * a; n += a; a *= .5; f *= 2.03; } return s / n; }
+function boxBlur(a, r) { const n = a.length, o = new Float32Array(n), p = new Float64Array(n + 1); for (let i = 0; i < n; i++) p[i + 1] = p[i] + a[i]; for (let i = 0; i < n; i++) { const l = Math.max(0, i - r), h = Math.min(n, i + r + 1); o[i] = (p[h] - p[l]) / (h - l); } return o; }
+function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+};
+
+/* ---------------- 画布 ---------------- */
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let CW, CH, DPR, U, VW;
+function resize() {
+  const r = $('#app').getBoundingClientRect();
+  CW = r.width; CH = r.height; DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+  cv.width = Math.round(CW * DPR); cv.height = Math.round(CH * DPR);
+  U = cv.height / 1000; VW = cv.width / U;
+}
+window.addEventListener('resize', resize); resize();
+
+const paperTile = (() => {
+  const s = 256, c = document.createElement('canvas'); c.width = c.height = s; const g = c.getContext('2d');
+  g.fillStyle = `rgb(${PAPER})`; g.fillRect(0, 0, s, s); const r = mulberry32(7);
+  for (let i = 0; i < 2200; i++) { g.fillStyle = `rgba(${120 + r() * 60 | 0},${100 + r() * 50 | 0},${70 + r() * 40 | 0},${r() * .07})`; g.fillRect(r() * s, r() * s, 1 + r() * 2, 1 + r() * 2); }
+  for (let i = 0; i < 90; i++) { g.strokeStyle = `rgba(150,128,92,${.05 + r() * .08})`; g.lineWidth = .7; g.beginPath(); const x = r() * s, y = r() * s, a = r() * Math.PI; g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * 9 + r() * 5, y + Math.sin(a) * 9, x + Math.cos(a) * 18, y + Math.sin(a) * 18); g.stroke(); }
+  return c;
+})();
+const paperPat = ctx.createPattern(paperTile, 'repeat');
+function drawPaperScreen(off) {
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const o = ((off % 256) + 256) % 256; ctx.translate(-o, 0);
+  ctx.fillStyle = paperPat; ctx.fillRect(0, 0, cv.width + 256, cv.height); ctx.restore();
+}
+
+/* ---------------- 印章 ---------------- */
+function sealChars(name) {
+  let n = [...(name || '').replace(/\s/g, '')].slice(0, 4);
+  if (!n.length) n = [...'无名氏'];
+  if (n.length === 1) return [n[0], '印'];
+  if (n.length === 2) return [n[0], n[1], '之', '印'];
+  if (n.length === 3) return [...n, '印'];
+  return n;
+}
+function drawSeal(c, cx, cy, size, chars, rot = 0, alpha = .93) {
+  c.save(); c.translate(cx, cy); c.rotate(rot); const h = size / 2;
+  c.fillStyle = `rgba(176,36,28,${alpha})`; rr(c, -h, -h, size, size, size * .08); c.fill();
+  c.strokeStyle = 'rgba(245,236,218,.8)'; c.lineWidth = size * .035; rr(c, -h * .84, -h * .84, size * .84, size * .84, size * .05); c.stroke();
+  c.fillStyle = '#f5ecda'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  if (chars.length === 1) { c.font = `bold ${size * .6}px ${FONT}`; c.fillText(chars[0], 0, size * .03); }
+  else if (chars.length === 2) { c.font = `bold ${size * .38}px ${FONT}`; c.fillText(chars[0], 0, -size * .19); c.fillText(chars[1], 0, size * .21); }
+  else { c.font = `bold ${size * .36}px ${FONT}`; const pos = [[.2, -.19], [.2, .21], [-.2, -.19], [-.2, .21]]; chars.slice(0, 4).forEach((ch, i) => c.fillText(ch, pos[i][0] * size, pos[i][1] * size)); }
+  const r = mulberry32(chars.join('').charCodeAt(0) * 31 + chars.length); c.fillStyle = `rgba(${PAPER},.45)`;
+  for (let i = 0; i < 16; i++) { c.beginPath(); c.arc((r() - .5) * size * .95, (r() - .5) * size * .95, r() * size * .028 + .4, 0, 7); c.fill(); }
+  c.restore();
+}
+
+/* ---------------- 关卡 ---------------- */
+const SEAL_CH = ['山', '水', '云', '松', '石', '泉', '月', '风', '鹤', '亭', '舟', '雪', '溪', '岚', '峰', '烟', '雁', '竹', '涧', '霞'];
+const LEVELS = [
+  { id: 'ping', name: '平远', quote: '自近山而望远山，谓之平远', desc: '山势舒缓 · 江天开阔', speed: 115, len: 4200, seed: 11, seals: 16, blanks: 8, drops: 2, side: -1,
+    path: x => 640 + 100 * Math.sin(x / 520) + 60 * Math.sin(x / 170 + 1.3) },
+  { id: 'gao', name: '高远', quote: '自山下而仰山巅，谓之高远', desc: '峰峦拔地 · 起落如惊', speed: 130, len: 4500, seed: 23, seals: 18, blanks: 6, drops: 5,
+    path: x => 520 + 290 * Math.sin(x / 175) + 35 * Math.sin(x / 70) },
+  { id: 'shen', name: '深远', quote: '自山前而窥山后，谓之深远', desc: '云锁重峦 · 穿隙而行', speed: 140, len: 4800, seed: 37, seals: 18, blanks: 10, drops: 4, twin: true,
+    path: x => 500 + 220 * Math.sin(x / 330) + 110 * Math.sin(x / 123 + .7) },
+  { id: 'free', name: '自在', quote: '无印无白，墨亦无尽，随心一卷', desc: '不计分 · 适合出图', speed: 120, len: 6000, seed: 51, free: true }
+];
+
+function genItems(L) {
+  if (L.free) return [];
+  const r = mulberry32(L.seed), items = [], A = 650, B = L.len - 150;
+  for (let i = 0; i < L.seals; i++) {
+    const x = A + (B - A) * (i + .5) / L.seals + (r() - .5) * 70;
+    const y = clamp(L.path(x) + (r() - .5) * 70, 150, 850);
+    items.push({ t: 'seal', x, y, ch: SEAL_CH[(i * 7 + L.seed) % SEAL_CH.length], rot: (r() - .5) * .35 });
+  }
+  for (let i = 0; i < L.drops; i++) {
+    const x = A + (B - A) * (i + .6) / L.drops + (r() - .5) * 120, p = L.path(x);
+    let y = p + (r() < .5 ? -1 : 1) * (150 + r() * 70); if (y < 150 || y > 850) y = 2 * p - y;
+    items.push({ t: 'ink', x, y: clamp(y, 150, 850) });
+  }
+  const addBlank = (x, side) => {
+    const rx = 85 + r() * 55, ry = 48 + r() * 28; let y = L.path(x) + side * (ry + 75 + r() * 70);
+    if (y < 120 + ry * .4 || y > 880 - ry * .4) return;
+    if (items.some(o => o.t !== 'blank' && ((o.x - x) / (rx + 45)) ** 2 + ((o.y - y) / (ry + 45)) ** 2 < 1)) return;
+    const b = { t: 'blank', x, y, rx, ry, puffs: [] };
+    for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2 + r() * .4; b.puffs.push({ x: Math.cos(a) * rx * .55, y: Math.sin(a) * ry * .42, r: ry * (.5 + r() * .3) }); }
+    items.push(b);
+  };
+  for (let i = 0; i < L.blanks; i++) {
+    const x = A + 120 + (B - A - 120) * (i + .5) / L.blanks + (r() - .5) * 100;
+    const side = L.side || (r() < .5 ? -1 : 1);
+    addBlank(x, side);
+    if (L.twin && r() < .55) addBlank(x + (r() - .5) * 40, -side);
+  }
+  return items;
+}
+
+/* ---------------- 声音 ---------------- */
+const PENTA = [261.63, 293.66, 329.63, 392, 440, 523.25, 587.33, 659.25, 783.99, 880];
+let AC = null, OUT = null, MASTER = null, NOISE = null, muted = store.get('ybjs_mute', false);
+function initAudio() {
+  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+  try {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    OUT = AC.createGain(); OUT.gain.value = muted ? 0 : 1; OUT.connect(AC.destination);
+    MASTER = AC.createGain(); MASTER.gain.value = .9; MASTER.connect(OUT);
+    const dl = AC.createDelay(); dl.delayTime.value = .27; const fb = AC.createGain(); fb.gain.value = .33;
+    const lp = AC.createBiquadFilter(); lp.frequency.value = 2000; const wet = AC.createGain(); wet.gain.value = .32;
+    MASTER.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(wet); wet.connect(OUT);
+    NOISE = AC.createBuffer(1, AC.sampleRate * .5, AC.sampleRate); const d = NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  } catch (e) { AC = null; }
+}
+function pluck(f, vol = .16, dur = 1.6, when = 0) {
+  if (!AC) return; const t = AC.currentTime + when;
+  const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain(), g2 = AC.createGain(), lp = AC.createBiquadFilter();
+  o.type = 'triangle'; o.frequency.setValueAtTime(f * 1.012, t); o.frequency.exponentialRampToValueAtTime(f, t + .09);
+  o2.type = 'sine'; o2.frequency.value = f * 2.005; g2.gain.value = .22;
+  lp.type = 'lowpass'; lp.frequency.setValueAtTime(f * 7, t); lp.frequency.exponentialRampToValueAtTime(f * 1.4, t + dur);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .007); g.gain.exponentialRampToValueAtTime(.0005, t + dur);
+  o.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(MASTER);
+  o.start(t); o2.start(t); o.stop(t + dur + .05); o2.stop(t + dur + .05);
+}
+function bell(f, vol = .1, dur = .9, when = 0) {
+  if (!AC) return; const t = AC.currentTime + when;
+  [1, 2.76, 5.4].forEach((m, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sine'; o.frequency.value = f * m;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol / (i + 1), t + .004); g.gain.exponentialRampToValueAtTime(.0004, t + dur / (i + 1));
+    o.connect(g); g.connect(MASTER); o.start(t); o.stop(t + dur + .05); });
+}
+function thud(f = 90, vol = .35) {
+  if (!AC) return; const t = AC.currentTime;
+  const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(f * 1.6, t); o.frequency.exponentialRampToValueAtTime(f, t + .12);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + .4); o.connect(g); g.connect(MASTER); o.start(t); o.stop(t + .45);
+  const n = AC.createBufferSource(), ng = AC.createGain(), nl = AC.createBiquadFilter(); n.buffer = NOISE; nl.type = 'lowpass'; nl.frequency.value = 500;
+  ng.gain.setValueAtTime(vol * .6, t); ng.gain.exponentialRampToValueAtTime(.001, t + .25); n.connect(nl); nl.connect(ng); ng.connect(MASTER); n.start(t); n.stop(t + .3);
+}
+const sSeal = () => { bell(1046.5, .09); pluck(1568, .05, .4); };
+const sInk = () => { pluck(196, .2, 1.2); pluck(293.66, .08, 1, .06); };
+const sBreak = () => thud(80, .4);
+const sEnd = () => [0, 2, 4, 5, 7, 9].forEach((i, k) => pluck(PENTA[i], .12, 2, k * .09));
+const sReveal = () => [9, 7, 5, 4, 2, 0, 2, 4].forEach((i, k) => pluck(PENTA[i] / 2, .1, 2.6, k * .38));
+function setMute(m) { muted = m; store.set('ybjs_mute', m); if (OUT) OUT.gain.value = m ? 0 : 1; $('#btnMute').textContent = m ? '声：关' : '声：开'; }
+
+/* ---------------- 状态 ---------------- */
+const G = { state: 'home', L: null, items: [], pts: [], penX: 0, penY: 500, tY: 500, ink: 100, score: 0, seals: 0, sealTotal: 0, breaks: 0, lifts: 0,
+  drawing: false, started: false, paused: false, fx: [], noteB: -1, noteT: 0, time: 0, paint: null, res: null, cam: 0, reveal: 0, revealDone: false, homeT: 0, demo: null };
+window.G = G;
+
+function showLayer(id) { ['home', 'hud', 'result'].forEach(k => $('#' + k).classList.toggle('on', k === id)); }
+function openModal(id) { $('#' + id).classList.add('on'); }
+document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m || e.target.hasAttribute('data-close')) m.classList.remove('on'); }));
+
+function playerName() { return ($('#nameIn').value || '').trim() || '无名氏'; }
+
+function startLevel(L) {
+  initAudio();
+  Object.assign(G, { state: 'play', L, items: genItems(L), pts: [], penX: 0, penY: 500, tY: 500, ink: 100, score: 0, seals: 0, breaks: 0, lifts: 0,
+    drawing: false, started: false, paused: false, fx: [], noteB: -1, noteT: 0, time: 0 });
+  G.sealTotal = G.items.filter(i => i.t === 'seal').length;
+  showLayer('hud');
+  $('#hudLv').textContent = L.name;
+  $('#inkbox').style.visibility = L.free ? 'hidden' : '';
+  $('#hudScoreBox').style.visibility = L.free ? 'hidden' : '';
+  $('#liftCost').style.display = L.free ? 'none' : '';
+  $('#hint').innerHTML = L.free
+    ? `<div class="big">${L.name}</div>按住屏幕落笔<br>上下移动，随心勾出山脊<br>提笔后可<em>收笔成画</em>`
+    : `<div class="big">${L.name}</div><div class="note">${L.quote}</div>按住屏幕落笔 · 上下移动勾出山脊<br>收<em>朱印</em> · 避<b>留白</b> · 惜<b>墨</b><br>提笔即停笔`;
+  $('#hint').classList.add('on'); $('#pauseBox').classList.remove('on'); $('#toast').classList.remove('on');
+}
+
+function toast(s) { const t = $('#toast'); t.textContent = s; t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1000); }
+
+function updPlay(dt) {
+  const L = G.L;
+  G.fx = G.fx.filter(f => (f.t += dt) < f.life);
+  if (!G.started || G.paused || !G.drawing) return;
+  G.time += dt;
+  const py = G.penY; G.penY += (G.tY - G.penY) * Math.min(1, dt * 13);
+  G.penX += L.speed * dt;
+  const dy = Math.abs(G.penY - py), v = dy / Math.max(dt, .001);
+  if (!L.free) G.ink -= .9 * dt + dy * .0085;
+  const low = !L.free && G.ink < 22;
+  G.pts.push({ x: G.penX, y: G.penY, w: clamp(10 - v * .012, 3.2, 10) * (low ? .7 : 1), dry: low });
+
+  for (const it of G.items) {
+    if (it.x < G.penX - 220 || it.x > G.penX + 220) continue;
+    if (it.t === 'seal' && !it.got) {
+      if (Math.hypot(it.x - G.penX, it.y - G.penY) < 46) { it.got = true; G.seals++; G.score += 100;
+        G.fx.push({ k: 'txt', x: it.x, y: it.y - 44, s: '+100', c: '#b2291f', t: 0, life: 1 }, { k: 'stamp', x: it.x, y: it.y, ch: it.ch, rot: it.rot, t: 0, life: .7 }); sSeal(); }
+    } else if (it.t === 'ink' && !it.got) {
+      if (Math.hypot(it.x - G.penX, it.y - G.penY) < 44) { it.got = true; G.ink = Math.min(100, G.ink + 22);
+        G.fx.push({ k: 'txt', x: it.x, y: it.y - 40, s: '添墨', c: '#1d1a16', t: 0, life: 1 }); sInk(); }
+    } else if (it.t === 'blank' && !it.hit) {
+      const ex = (G.penX - it.x) / it.rx, ey = (G.penY - it.y) / it.ry;
+      if (ex * ex + ey * ey < 1) { it.hit = true; G.breaks++; G.score -= 150;
+        const r = mulberry32(it.x | 0); it.blots = []; for (let k = 0; k < 9; k++) it.blots.push({ x: (r() - .5) * it.rx * 1.3, y: (r() - .5) * it.ry * 1.2, r: 4 + r() * 16 });
+        G.fx.push({ k: 'txt', x: it.x, y: it.y - it.ry - 10, s: '破白 −150', c: '#5a4a3a', t: 0, life: 1.2 }); sBreak(); }
+    }
+  }
+  const b = clamp(Math.floor((1 - (G.penY - 100) / 800) * 10), 0, 9);
+  G.noteT += dt;
+  if (b !== G.noteB && G.noteT > .11) { G.noteB = b; G.noteT = 0; pluck(PENTA[b], .12); }
+  else if (G.noteT > 1.7) { G.noteT = 0; pluck(PENTA[b] / 2, .07, 2.4); }
+
+  if (!L.free && G.ink <= 0) { G.ink = 0; endGame('墨尽'); return; }
+  if (G.penX >= L.len) endGame('卷成');
+}
+
+function endGame(reason) {
+  if (G.state !== 'play') return;
+  G.state = 'ending'; G.drawing = false;
+  $('#pauseBox').classList.remove('on'); $('#hint').classList.remove('on');
+  if (G.pts.length < 20) { showLayer('home'); G.state = 'home'; return; }
+  toast(reason); sEnd();
+  setTimeout(() => finish(), 1100);
+}
+
+/* ---------------- 游戏渲染 ---------------- */
+const ghostNz = makeNoise(mulberry32(5));
+function renderPlay() {
+  const L = G.L, camX = G.penX - VW * .32;
+  drawPaperScreen(camX * U);
+  ctx.setTransform(U, 0, 0, U, 0, 0);
+  // 背景远山（视差）
+  [[.18, 420, 'rgba(110,130,128,.06)'], [.35, 560, 'rgba(100,120,115,.08)']].forEach(([p, base, col], li) => {
+    ctx.beginPath(); ctx.moveTo(0, 1000);
+    for (let sx = 0; sx <= VW + 10; sx += 10) ctx.lineTo(sx, base + fbm(ghostNz, (camX * p + sx) / 380 + li * 40, 4) * 260);
+    ctx.lineTo(VW + 10, 1000); ctx.fillStyle = col; ctx.fill();
+  });
+  ctx.fillStyle = `rgba(110,150,160,.10)`; ctx.fillRect(0, WL + 10, VW, 1000);
+
+  ctx.setTransform(U, 0, 0, U, -camX * U, 0);
+  const t = performance.now() / 1000;
+  for (const it of G.items) {
+    if (it.x < camX - 200 || it.x > camX + VW + 200) continue;
+    if (it.t === 'blank') {
+      ctx.save(); ctx.translate(it.x, it.y);
+      for (const p of it.puffs) { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fillStyle = 'rgba(255,253,246,.5)'; ctx.fill(); }
+      ctx.setLineDash([6, 7]); ctx.strokeStyle = 'rgba(120,105,85,.4)'; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.ellipse(0, 0, it.rx, it.ry, 0, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(130,120,100,.45)'; ctx.lineWidth = 1.6;
+      [[-.3, -.1, 1], [.28, .12, -1]].forEach(([a, b, d]) => { ctx.beginPath(); const cx = a * it.rx, cy = b * it.ry, R = it.ry * .28;
+        ctx.arc(cx, cy, R, 0, Math.PI * 1.5 * d, d < 0); ctx.arc(cx + R * .45 * d, cy - R * .2, R * .45, Math.PI * 1.5 * d, Math.PI * .2, d < 0); ctx.stroke(); });
+      if (it.blots) for (const b of it.blots) { ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.fillStyle = 'rgba(30,25,20,.22)'; ctx.fill(); }
+      ctx.fillStyle = 'rgba(110,98,80,.55)'; ctx.font = `20px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('留', 0, -11); ctx.fillText('白', 0, 11);
+      ctx.restore();
+    } else if (it.t === 'seal' && !it.got) {
+      const by = Math.sin(t * 2.4 + it.x * .01) * 3;
+      ctx.beginPath(); ctx.arc(it.x, it.y + by, 34, 0, 7); ctx.fillStyle = 'rgba(178,41,31,.08)'; ctx.fill();
+      drawSeal(ctx, it.x, it.y + by, 44, [it.ch], it.rot);
+    } else if (it.t === 'ink' && !it.got) {
+      const x = it.x, y = it.y + Math.sin(t * 3 + x) * 3, pr = 30 + Math.sin(t * 4) * 4;
+      ctx.beginPath(); ctx.arc(x, y - 4, pr, 0, 7); ctx.strokeStyle = 'rgba(30,26,22,.18)'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#1d1a16'; ctx.beginPath(); ctx.moveTo(x, y - 24); ctx.bezierCurveTo(x + 15, y - 6, x + 15, y + 12, x, y + 12); ctx.bezierCurveTo(x - 15, y + 12, x - 15, y - 6, x, y - 24); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.beginPath(); ctx.arc(x - 5, y + 1, 3, 0, 7); ctx.fill();
+    }
+  }
+  drawStroke(ctx, G.pts, camX - 20, camX + VW + 20, 1);
+  // 笔
+  if (G.started || G.state === 'play') drawBrush(G.penX, G.penY, G.drawing ? 0 : 26);
+  // 特效
+  for (const f of G.fx) {
+    const p = f.t / f.life;
+    if (f.k === 'txt') { ctx.globalAlpha = 1 - p; ctx.fillStyle = f.c; ctx.font = `bold 30px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(f.s, f.x, f.y - p * 50); ctx.globalAlpha = 1; }
+    else if (f.k === 'stamp') { ctx.globalAlpha = (1 - p) * .9; drawSeal(ctx, f.x, f.y, 44 * (1 + p * .9), [f.ch], f.rot); ctx.globalAlpha = 1; }
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+function drawStroke(c, pts, x0, x1, alpha) {
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  let i = 0, lo = 0, hi = pts.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (pts[m].x < x0) lo = m + 1; else hi = m; } i = Math.max(1, lo);
+  for (; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i]; if (b.x > x1) break;
+    c.strokeStyle = b.dry ? `rgba(28,24,20,${.5 * alpha})` : `rgba(22,19,16,${.9 * alpha})`;
+    c.lineWidth = b.w; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke();
+  }
+}
+function drawBrush(x, y, lift) {
+  ctx.save(); ctx.translate(x, y - lift); ctx.rotate(.42);
+  ctx.beginPath(); ctx.arc(0, 0, 6, 0, 7); ctx.fillStyle = 'rgba(20,18,15,.35)'; if (!lift) ctx.fill();
+  ctx.fillStyle = '#1d1a16'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(-8, -14, -7, -30); ctx.lineTo(7, -30); ctx.quadraticCurveTo(8, -14, 0, 0); ctx.fill();
+  ctx.fillStyle = '#5b3e26'; ctx.fillRect(-7.5, -40, 15, 11);
+  const g = ctx.createLinearGradient(-5.5, 0, 5.5, 0); g.addColorStop(0, '#a87a3c'); g.addColorStop(.5, '#e2c48e'); g.addColorStop(1, '#966c34');
+  ctx.fillStyle = g; ctx.fillRect(-5.5, -125, 11, 86);
+  ctx.fillStyle = 'rgba(90,60,30,.55)'; ctx.fillRect(-5.5, -78, 11, 2.5); ctx.fillRect(-5.5, -110, 11, 2.5);
+  ctx.restore();
+}
+
+/* ---------------- 山水生成（化境） ---------------- */
+function ridgePath(c, f, x0, x1, bot, step = 4) { c.beginPath(); c.moveTo(x0, bot); for (let x = x0; x < x1 + step; x += step) { const xx = Math.min(x, x1); c.lineTo(xx, f(xx)); } c.lineTo(x1, bot); c.closePath(); }
+function bandPath(c, f, d0, d1, x0, x1, bot, step = 4) { c.beginPath(); for (let x = x0; x <= x1; x += step) c.lineTo(x, Math.min(f(x) + d0, bot)); for (let x = x1; x >= x0; x -= step) c.lineTo(x, Math.min(f(x) + d1, bot)); c.closePath(); }
+
+function drawPine(c, x, y, h, r) {
+  c.strokeStyle = 'rgba(48,36,28,.9)'; c.lineWidth = Math.max(1.2, h * .07); c.lineCap = 'round';
+  const tx = x + (r() - .5) * h * .25;
+  c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + (r() - .5) * h * .3, y - h * .5, tx, y - h); c.stroke();
+  const tiers = 3 + (r() * 2 | 0);
+  for (let t = 0; t < tiers; t++) {
+    const k = t / (tiers - 1), ty = y - h * (.4 + .6 * k), tw = h * (.5 - .3 * k), cx = lerp(x, tx, .4 + .6 * k) + (r() - .5) * h * .12;
+    c.fillStyle = `rgba(${28 + r() * 14 | 0},${58 + r() * 22 | 0},${46 + r() * 12 | 0},.92)`;
+    c.beginPath(); c.ellipse(cx, ty, tw, h * .085, (r() - .5) * .25, 0, 7); c.fill();
+    c.strokeStyle = 'rgba(18,28,20,.55)'; c.lineWidth = .8;
+    for (let n = 0; n < 4; n++) { const nx = cx + (r() - .5) * tw * 1.6; c.beginPath(); c.moveTo(nx, ty - h * .05); c.lineTo(nx + (r() - .5) * 3, ty + h * .05); c.stroke(); }
+  }
+}
+function drawLeafTree(c, x, y, h, r) {
+  c.strokeStyle = 'rgba(55,40,30,.85)'; c.lineWidth = Math.max(1, h * .06);
+  c.beginPath(); c.moveTo(x, y); c.lineTo(x + (r() - .5) * 4, y - h * .7); c.stroke();
+  const pal = r() < .25 ? ['rgba(170,52,38,.75)', 'rgba(196,110,52,.7)'] : ['rgba(40,70,50,.8)', 'rgba(75,110,70,.75)'];
+  for (let i = 0; i < 16; i++) { c.fillStyle = pal[i % 2]; c.beginPath(); c.arc(x + (r() - .5) * h * .7, y - h * (.55 + r() * .45), h * (.07 + r() * .06), 0, 7); c.fill(); }
+}
+function drawPavilion(c, x, y, s) {
+  c.save(); c.translate(x, y);
+  c.fillStyle = 'rgba(110,82,58,.95)'; c.fillRect(-s * .55, -s * .12, s * 1.1, s * .12);
+  c.strokeStyle = 'rgba(70,50,38,.95)'; c.lineWidth = s * .07;
+  [-.38, 0, .38].forEach(p => { c.beginPath(); c.moveTo(p * s, -s * .12); c.lineTo(p * s, -s * .58); c.stroke(); });
+  c.fillStyle = 'rgba(48,42,40,.97)'; c.beginPath();
+  c.moveTo(-s * .82, -s * .5); c.quadraticCurveTo(-s * .45, -s * .56, -s * .12, -s * .98); c.lineTo(s * .12, -s * .98);
+  c.quadraticCurveTo(s * .45, -s * .56, s * .82, -s * .5); c.quadraticCurveTo(s * .4, -s * .6, 0, -s * .58); c.quadraticCurveTo(-s * .4, -s * .6, -s * .82, -s * .5); c.fill();
+  c.strokeStyle = 'rgba(48,42,40,.97)'; c.lineWidth = s * .05; c.beginPath(); c.moveTo(0, -s * .98); c.lineTo(0, -s * 1.15); c.stroke();
+  c.restore();
+}
+function drawBoat(c, x, y, s) {
+  c.save(); c.translate(x, y); c.scale(s, s);
+  c.fillStyle = 'rgba(62,44,32,.92)'; c.beginPath(); c.moveTo(-30, -5); c.quadraticCurveTo(0, 9, 32, -7); c.lineTo(24, -1); c.quadraticCurveTo(0, 4, -24, -1); c.closePath(); c.fill();
+  c.strokeStyle = 'rgba(40,32,26,.9)'; c.lineWidth = 2.2; c.beginPath(); c.moveTo(4, -3); c.lineTo(5, -15); c.stroke();
+  c.fillStyle = 'rgba(120,92,52,.95)'; c.beginPath(); c.moveTo(-3, -14); c.lineTo(13, -14); c.lineTo(5, -21); c.closePath(); c.fill();
+  c.strokeStyle = 'rgba(40,32,26,.75)'; c.lineWidth = 1; c.beginPath(); c.moveTo(7, -10); c.quadraticCurveTo(28, -26, 44, -30); c.stroke();
+  c.lineWidth = .6; c.beginPath(); c.moveTo(44, -30); c.lineTo(46, 4); c.stroke();
+  c.strokeStyle = 'rgba(60,90,100,.35)'; c.lineWidth = 1.2;
+  for (let i = 0; i < 3; i++) { c.beginPath(); c.moveTo(-26 + i * 6, 6 + i * 4); c.lineTo(22 - i * 4, 6 + i * 4); c.stroke(); }
+  c.restore();
+}
+
+function buildPainting(pts, seed, opt = {}) {
+  const rnd = mulberry32(seed), nz = makeNoise(rnd), nz2 = makeNoise(rnd);
+  const M = 280, p0 = pts[0], pn = pts[pts.length - 1];
+  const xs = p0.x - M, xe = pn.x + M, len = xe - xs;
+  let S = opt.S || .8; if (len * S > 9000) S = 9000 / len;
+  const cnv = document.createElement('canvas'); cnv.width = Math.ceil(len * S); cnv.height = Math.ceil(1000 * S);
+  const c = cnv.getContext('2d'); c.setTransform(S, 0, 0, S, -xs * S, 0);
+  c.lineCap = 'round'; c.lineJoin = 'round';
+
+  // 山脊采样
+  const ST = 2, N = Math.ceil(len / ST) + 2, raw = new Float32Array(N); let j = 0;
+  for (let i = 0; i < N; i++) {
+    const x = xs + i * ST; let y;
+    if (x <= p0.x) y = lerp(WL + 40, p0.y, sstep((x - xs) / M));
+    else if (x >= pn.x) y = lerp(WL + 40, pn.y, sstep((xe - x) / M));
+    else { while (j < pts.length - 2 && pts[j + 1].x < x) j++; const a = pts[j], b = pts[j + 1]; y = lerp(a.y, b.y, b.x > a.x ? clamp((x - a.x) / (b.x - a.x), 0, 1) : 0); }
+    raw[i] = y;
+  }
+  const R = boxBlur(boxBlur(raw, 5), 5), Rb = boxBlur(boxBlur(raw, 90), 90);
+  for (let i = 0; i < N; i++) { const x = xs + i * ST; R[i] += fbm(nz, x / 70, 3) * 16 + nz2(x / 9) * 3.2; }
+  const at = (A, x) => { const f = clamp((x - xs) / ST, 0, N - 1.001), i = f | 0; return lerp(A[i], A[i + 1], f - i); };
+  const Rx = x => at(R, x), Rbx = x => at(Rb, x), slope = x => (Rx(x + 8) - Rx(x - 8)) / 16;
+  const BOT = WL + 28, topF = x => Math.min(Rx(x), BOT);
+  const i0 = Math.max(0, Math.floor((p0.x - xs) / ST)), i1 = Math.min(N - 1, Math.floor((pn.x - xs) / ST));
+
+  // ---- 特征 ----
+  let minY = 1e9, minI = i0, sum = 0, sum2 = 0, cnt = 0;
+  for (let i = i0; i <= i1; i++) { const y = R[i]; if (y < minY) { minY = y; minI = i; } sum += y; sum2 += y * y; cnt++; }
+  const mean = sum / cnt, std = Math.sqrt(Math.max(0, sum2 / cnt - mean * mean));
+  let peaks = 0; for (let i = i0 + 40; i < i1 - 40; i++) { let isMin = R[i] < 620; for (let k = -40; k <= 40 && isMin; k += 4) if (R[i + k] < R[i]) isMin = false; if (isMin) { peaks++; i += 40; } }
+  let run = 0, bestRun = 0, bestEnd = 0; for (let i = i0; i <= i1; i++) { if (R[i] > BOT - 25) { run++; if (run > bestRun) { bestRun = run; bestEnd = i; } } else run = 0; }
+  const waterRun = bestRun * ST, waterX = xs + (bestEnd - bestRun / 2) * ST;
+  const falls = []; const FW = 60;
+  for (let i = i0; i < i1 - FW; i += 4) {
+    const d = R[i + FW] - R[i];
+    if (Math.abs(d) > 165 && Math.min(R[i], R[i + FW]) < BOT - 300) { const x = xs + (i + FW * .5) * ST; if (!falls.length || x - falls[falls.length - 1].x > 600) falls.push({ x }); if (falls.length >= 2) break; i += FW; }
+  }
+  const peakX = xs + minI * ST;
+
+  // 题跋位置：天空最空处
+  let bestSky = -1, insX = xs + 300;
+  for (let x = xs + 40; x <= xe - 380; x += 20) { let m = 1e9; for (let t = 0; t <= 340; t += 10) m = Math.min(m, Rx(x + t)); if (m > bestSky) { bestSky = m; insX = x; } }
+  const ins = { x: insX + 340 - 30, top: 60, h: clamp(bestSky - 110, 220, 600) };
+
+  // ---- 1 纸 ----
+  c.fillStyle = c.createPattern(paperTile, 'repeat'); c.fillRect(xs, 0, len, 1000);
+  let g = c.createLinearGradient(0, 0, 0, 560); g.addColorStop(0, 'rgba(168,192,196,.22)'); g.addColorStop(1, 'rgba(168,192,196,0)'); c.fillStyle = g; c.fillRect(xs, 0, len, 560);
+  // ---- 2 日 ----
+  let sunX = xs + len * .7, sunBest = -1;
+  for (let x = xs + 150; x < xe - 150; x += 30) { if (Math.abs(x - (insX + 170)) < 460) continue; const m = Math.min(Rx(x - 60), Rx(x), Rx(x + 60)); if (m > sunBest) { sunBest = m; sunX = x; } }
+  const sunY = clamp(Math.min(210, Rx(sunX) - 150), 80, 210);
+  g = c.createRadialGradient(sunX, sunY, 0, sunX, sunY, 40); g.addColorStop(0, 'rgba(204,74,52,.58)'); g.addColorStop(.75, 'rgba(204,74,52,.5)'); g.addColorStop(1, 'rgba(204,74,52,0)');
+  c.fillStyle = g; c.beginPath(); c.arc(sunX, sunY, 40, 0, 7); c.fill();
+  // ---- 3 远山 ----
+  const FA = x => Math.max(130, 310 + (Rbx(x) - 560) * .3 + fbm(nz, x / 260 + 40, 4) * 120);
+  g = c.createLinearGradient(0, 180, 0, 720); g.addColorStop(0, 'rgba(118,152,165,.5)'); g.addColorStop(1, `rgba(${PAPER},0)`);
+  ridgePath(c, FA, xs, xe, 760); c.fillStyle = g; c.fill();
+  const FB = x => Math.max(200, 430 + (Rbx(x) - 560) * .45 + fbm(nz2, x / 190 + 90, 4) * 140);
+  g = c.createLinearGradient(0, 280, 0, 800); g.addColorStop(0, 'rgba(84,130,132,.58)'); g.addColorStop(1, `rgba(${PAPER},0)`);
+  ridgePath(c, FB, xs, xe, 820); c.fillStyle = g; c.fill();
+  c.strokeStyle = 'rgba(60,90,95,.18)'; c.lineWidth = 1.2; c.beginPath(); for (let x = xs; x <= xe; x += 5) c.lineTo(x, FB(x)); c.stroke();
+  c.fillStyle = 'rgba(40,70,65,.35)'; for (let x = xs; x < xe; x += 6 + rnd() * 14) { c.beginPath(); c.arc(x, FB(x) + rnd() * 6, .8 + rnd() * 1.4, 0, 7); c.fill(); }
+  // 雾带
+  g = c.createLinearGradient(0, 540, 0, 820); g.addColorStop(0, `rgba(${PAPER},0)`); g.addColorStop(.55, `rgba(${PAPER},.7)`); g.addColorStop(1, `rgba(${PAPER},.2)`);
+  c.fillStyle = g; c.fillRect(xs, 540, len, 280);
+  // ---- 4 水 ----
+  g = c.createLinearGradient(0, WL - 30, 0, 1000); g.addColorStop(0, 'rgba(160,190,192,.38)'); g.addColorStop(1, 'rgba(190,200,190,.2)');
+  c.fillStyle = g; c.fillRect(xs, WL - 30, len, 1000 - WL + 30);
+  c.lineWidth = 1.1;
+  for (let k = 0; k < len / 6; k++) { const x = xs + rnd() * len, y = WL + 4 + Math.pow(rnd(), 1.4) * (1000 - WL - 10), l = 8 + rnd() * 30;
+    c.strokeStyle = `rgba(62,96,104,${.1 + rnd() * .16})`; c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + l / 2, y - 1.5, x + l, y); c.stroke(); }
+
+  // ---- 5 主山 ----
+  g = c.createLinearGradient(0, 150, 0, BOT); g.addColorStop(0, '#3d6f7b'); g.addColorStop(.42, '#6b8f63'); g.addColorStop(.78, '#b48a59'); g.addColorStop(1, '#c9a679');
+  ridgePath(c, topF, xs, xe, BOT); c.fillStyle = g; c.fill();
+  const COLS = [[34, 92, 126], [40, 106, 128], [50, 120, 122], [66, 134, 108], [86, 142, 96], [120, 150, 92]];
+  const NB = 18, BH = 15;
+  for (let k = 0; k < NB; k++) {
+    const t = k / (NB - 1) * (COLS.length - 1), ci = Math.min(COLS.length - 2, t | 0), f = t - ci;
+    const col = COLS[ci].map((v, q) => Math.round(lerp(v, COLS[ci + 1][q], f)));
+    c.fillStyle = `rgba(${col},${.86 * Math.pow(1 - k / NB, 1.15)})`;
+    bandPath(c, Rx, k * BH, (k + 1) * BH + 1, xs, xe, BOT); c.fill();
+  }
+  // 明暗
+  const slopeW = x => clamp((Rx(x + 24) - Rx(x - 24)) / 48, -2, 2);
+  for (let x = xs; x < xe; x += 3) {
+    const s = slopeW(x), y = Rx(x); if (y > BOT - 20) continue;
+    if (s > .15) { c.strokeStyle = `rgba(18,40,52,${clamp((s - .15) * .12, 0, .13)})`; c.lineWidth = 4; c.beginPath(); c.moveTo(x, y + 2); c.lineTo(x + 4, Math.min(y + 150, BOT)); c.stroke(); }
+    else if (s < -.15) { c.strokeStyle = `rgba(255,250,228,${clamp((-s - .15) * .08, 0, .1)})`; c.lineWidth = 4; c.beginPath(); c.moveTo(x, y + 4); c.lineTo(x - 4, Math.min(y + 110, BOT)); c.stroke(); }
+  }
+  // 皴
+  for (let k = 0; k < len / 3.2; k++) {
+    const x = xs + rnd() * len, y0 = Rx(x); if (y0 > BOT - 40) continue;
+    const dep = Math.pow(rnd(), 1.5) * Math.min(330, BOT - y0 - 20), y = y0 + dep + 6, s = slope(x), l = 7 + rnd() * 13;
+    c.strokeStyle = `rgba(30,48,42,${.08 + .16 * (1 - dep / 330)})`; c.lineWidth = .8 + rnd() * .9;
+    c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + s * l * .3 + (rnd() - .5) * 3, y + l * .5, x + s * l * .55, y + l); c.stroke();
+  }
+  // 褶线
+  for (let k = 0; k < len / 380; k++) {
+    const a = xs + rnd() * len, span = 150 + rnd() * 260, o = 45 + rnd() * 130;
+    c.strokeStyle = 'rgba(28,38,32,.26)'; c.lineWidth = 1.4; c.beginPath(); let on = false;
+    for (let x = a; x < a + span; x += 4) { const y = Rx(x) + o + fbm(nz2, x / 40) * 12; if (y < BOT - 40) { on ? c.lineTo(x, y) : c.moveTo(x, y); on = true; } else on = false; }
+    c.stroke();
+  }
+  // 山脊勾线
+  c.strokeStyle = 'rgba(26,28,24,.82)'; c.lineWidth = 2.6; c.beginPath(); let on = false;
+  for (let x = xs; x <= xe; x += 3) { const y = Rx(x); if (y < BOT - 6) { on ? c.lineTo(x, y) : c.moveTo(x, y); on = true; } else on = false; } c.stroke();
+  c.strokeStyle = 'rgba(26,28,24,.28)'; c.lineWidth = 1.2; c.beginPath(); on = false;
+  for (let x = xs; x <= xe; x += 3) { const y = Rx(x) + 4 + nz(x / 20) * 2; if (y < BOT - 6) { on ? c.lineTo(x, y) : c.moveTo(x, y); on = true; } else on = false; } c.stroke();
+  // 苔点
+  for (let x = xs; x < xe; x += 5 + rnd() * 18) { const y = Rx(x); if (y > BOT - 40) continue; const n = 1 + (rnd() * 3 | 0);
+    for (let q = 0; q < n; q++) { c.fillStyle = `rgba(22,36,26,${.55 + rnd() * .3})`; c.beginPath(); c.arc(x + (rnd() - .5) * 8, y + rnd() * 9 - 2, 1.1 + rnd() * 2, 0, 7); c.fill(); } }
+
+  // ---- 6 瀑布 ----
+  for (const f of falls) {
+    const x = f.x, y0 = Rx(x) + 12, y1 = Math.min(y0 + 220 + rnd() * 80, BOT - 20), w = 10 + rnd() * 5;
+    c.fillStyle = 'rgba(22,42,48,.32)'; c.beginPath(); c.moveTo(x - w, y0); for (let y = y0; y <= y1; y += 10) c.lineTo(x - w * 1.05 + nz(y / 15) * 3, y); for (let y = y1; y >= y0; y -= 10) c.lineTo(x + w * 1.05 + nz(y / 15 + 9) * 3, y); c.fill();
+    g = c.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, 'rgba(252,250,242,.97)'); g.addColorStop(1, 'rgba(252,250,242,.72)');
+    c.fillStyle = g; c.beginPath(); c.moveTo(x - w * .5, y0); c.lineTo(x + w * .5, y0); c.lineTo(x + w * .78, y1); c.lineTo(x - w * .78, y1); c.fill();
+    c.strokeStyle = 'rgba(140,170,178,.55)'; c.lineWidth = .8; for (let q = -1; q <= 1; q++) { c.beginPath(); c.moveTo(x + q * w * .25, y0 + 6); c.lineTo(x + q * w * .38, y1 - 4); c.stroke(); }
+    g = c.createRadialGradient(x, y1, 0, x, y1, 70); g.addColorStop(0, 'rgba(252,250,242,.85)'); g.addColorStop(1, 'rgba(252,250,242,0)'); c.fillStyle = g; c.fillRect(x - 70, y1 - 70, 140, 140);
+  }
+  // ---- 7 树 ----
+  for (let k = 0; k < len / 120; k++) {
+    const x = xs + rnd() * len, y = Rx(x); if (y > BOT - 80 || Math.abs(slope(x)) > .7 || Math.abs(x - peakX) < 40) continue;
+    const h = 14 + rnd() * 18; rnd() < .62 ? drawPine(c, x, y + 3, h, rnd) : drawLeafTree(c, x, y + 3, h, rnd);
+  }
+  // ---- 8 亭 ----
+  if (minY < BOT - 120) drawPavilion(c, peakX, Rx(peakX) + 3, 28);
+  // ---- 9 云气 ----
+  const mistN = len / (opt.misty ? 260 : 380);
+  for (let k = 0; k < mistN; k++) {
+    const x = xs + rnd() * len, y = Rx(x) + 110 + rnd() * 200; if (y > BOT - 50) continue;
+    const w = 180 + rnd() * 280, h = 26 + rnd() * 40;
+    c.save(); c.translate(x, y); c.scale(w / h, 1);
+    g = c.createRadialGradient(0, 0, 0, 0, 0, h); g.addColorStop(0, `rgba(${PAPER},.88)`); g.addColorStop(.6, `rgba(${PAPER},.5)`); g.addColorStop(1, `rgba(${PAPER},0)`);
+    c.fillStyle = g; c.fillRect(-h, -h, h * 2, h * 2); c.restore();
+  }
+  g = c.createLinearGradient(0, BOT - 120, 0, BOT + 6); g.addColorStop(0, `rgba(${PAPER},0)`); g.addColorStop(1, `rgba(${PAPER},.9)`);
+  c.fillStyle = g; c.fillRect(xs, BOT - 120, len, 126);
+  // ---- 10 近岸小丘 ----
+  const hillN = Math.max(2, Math.round(len / 1000));
+  for (let k = 0; k < hillN; k++) {
+    const a = xs + 40 + rnd() * (len - 520), w = 240 + rnd() * 240, h = 70 + rnd() * 80;
+    const hf = x => BOT - h * Math.pow(Math.sin(Math.PI * clamp((x - a) / w, 0, 1)), 1.3) + nz(x / 25 + k * 50) * 6;
+    g = c.createLinearGradient(0, BOT - h, 0, BOT); g.addColorStop(0, '#2c6660'); g.addColorStop(.45, '#5d8c5e'); g.addColorStop(1, '#b8915e');
+    ridgePath(c, hf, a, a + w, BOT + 6); c.fillStyle = g; c.fill();
+    c.fillStyle = 'rgba(30,86,112,.45)'; bandPath(c, hf, 0, 16, a, a + w, BOT + 6); c.fill();
+    c.strokeStyle = 'rgba(26,28,24,.8)'; c.lineWidth = 2.2; c.beginPath(); for (let x = a; x <= a + w; x += 3) c.lineTo(x, hf(x)); c.stroke();
+    for (let q = 0; q < w / 4; q++) { const x = a + rnd() * w; c.strokeStyle = 'rgba(30,48,42,.2)'; c.lineWidth = 1; const y = hf(x) + 8 + rnd() * (BOT - hf(x)); c.beginPath(); c.moveTo(x, y); c.lineTo(x + (rnd() - .5) * 4, y + 8); c.stroke(); }
+    for (let x = a + 10; x < a + w - 10; x += 6 + rnd() * 14) { c.fillStyle = 'rgba(22,36,26,.7)'; c.beginPath(); c.arc(x, hf(x) + rnd() * 6, 1.2 + rnd() * 1.8, 0, 7); c.fill(); }
+    const tn = 2 + (rnd() * 3 | 0);
+    for (let q = 0; q < tn; q++) { const x = a + w * (.2 + rnd() * .6), th = 28 + rnd() * 24; rnd() < .6 ? drawPine(c, x, hf(x) + 3, th, rnd) : drawLeafTree(c, x, hf(x) + 3, th, rnd); }
+  }
+  // ---- 11 舟 ----
+  const boatX = waterRun > 90 ? waterX : xs + len * (.25 + rnd() * .5);
+  drawBoat(c, boatX, WL + 70, 1.15);
+  const b2 = xs + len * (.1 + rnd() * .8); if (Math.abs(b2 - boatX) > 500) drawBoat(c, b2, WL + 30, .55);
+  // ---- 12 飞鸟 ----
+  c.strokeStyle = 'rgba(30,26,22,.7)'; c.lineWidth = 1.4;
+  for (let k = 0; k < 5; k++) { const bx = peakX + (rnd() - .5) * 260, by = Math.max(70, Rx(peakX) - 80 - rnd() * 110), s = .7 + rnd() * .6;
+    c.beginPath(); c.moveTo(bx - 7 * s, by - 2 * s); c.quadraticCurveTo(bx - 3 * s, by - 5 * s, bx, by); c.quadraticCurveTo(bx + 3 * s, by - 5 * s, bx + 8 * s, by - 3 * s); c.stroke(); }
+  // ---- 13 旧纸 ----
+  g = c.createLinearGradient(xs, 0, xs + 90, 0); g.addColorStop(0, 'rgba(140,108,66,.2)'); g.addColorStop(1, 'rgba(140,108,66,0)'); c.fillStyle = g; c.fillRect(xs, 0, 90, 1000);
+  g = c.createLinearGradient(xe, 0, xe - 90, 0); g.addColorStop(0, 'rgba(140,108,66,.2)'); g.addColorStop(1, 'rgba(140,108,66,0)'); c.fillStyle = g; c.fillRect(xe - 90, 0, 90, 1000);
+  g = c.createLinearGradient(0, 0, 0, 50); g.addColorStop(0, 'rgba(140,108,66,.16)'); g.addColorStop(1, 'rgba(140,108,66,0)'); c.fillStyle = g; c.fillRect(xs, 0, len, 50);
+  for (let k = 0; k < len / 700; k++) { const x = xs + rnd() * len, y = rnd() * 1000, r = 20 + rnd() * 60;
+    g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, 'rgba(150,115,70,.06)'); g.addColorStop(1, 'rgba(150,115,70,0)'); c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2); }
+
+  return { canvas: cnv, xs, len, S, ins, feat: { minY, peaks, std, falls: falls.length, waterRun, hasPav: minY < BOT - 120 } };
+}
+
+/* ---------------- 题跋：集句 + 画名 ---------------- */
+const POEMS = {
+  瀑: [['飞流直下三千尺，疑是银河落九天。', '李白《望庐山瀑布》'], ['日照香炉生紫烟，遥看瀑布挂前川。', '李白《望庐山瀑布》'], ['明月松间照，清泉石上流。', '王维《山居秋暝》']],
+  高: [['会当凌绝顶，一览众山小。', '杜甫《望岳》'], ['岱宗夫如何？齐鲁青未了。', '杜甫《望岳》'], ['连峰去天不盈尺，枯松倒挂倚绝壁。', '李白《蜀道难》'], ['荡胸生曾云，决眦入归鸟。', '杜甫《望岳》']],
+  云: [['江流天地外，山色有无中。', '王维《汉江临眺》'], ['行到水穷处，坐看云起时。', '王维《终南别业》'], ['远上寒山石径斜，白云生处有人家。', '杜牧《山行》'], ['曲径通幽处，禅房花木深。', '常建《题破山寺后禅院》'], ['山重水复疑无路，柳暗花明又一村。', '陆游《游山西村》']],
+  江: [['两岸青山相对出，孤帆一片日边来。', '李白《望天门山》'], ['两岸猿声啼不住，轻舟已过万重山。', '李白《早发白帝城》'], ['青山隐隐水迢迢，秋尽江南草未凋。', '杜牧《寄扬州韩绰判官》'], ['一水护田将绿绕，两山排闼送青来。', '王安石《书湖阴先生壁》']],
+  平: [['山随平野尽，江入大荒流。', '李白《渡荆门送别》'], ['野旷天低树，江清月近人。', '孟浩然《宿建德江》'], ['白日依山尽，黄河入海流。', '王之涣《登鹳雀楼》'], ['采菊东篱下，悠然见南山。', '陶渊明《饮酒·其五》']],
+  山: [['横看成岭侧成峰，远近高低各不同。', '苏轼《题西林壁》'], ['远看山有色，近听水无声。', '传王维《画》'], ['我见青山多妩媚，料青山见我应如是。', '辛弃疾《贺新郎》'], ['山光悦鸟性，潭影空人心。', '常建《题破山寺后禅院》'], ['空山新雨后，天气晚来秋。', '王维《山居秋暝》']],
+  逸: [['不要人夸好颜色，只留清气满乾坤。', '王冕《墨梅》'], ['众鸟高飞尽，孤云独去闲。', '李白《独坐敬亭山》'], ['相看两不厌，只有敬亭山。', '李白《独坐敬亭山》']],
+  励: [['欲穷千里目，更上一层楼。', '王之涣《登鹳雀楼》'], ['长风破浪会有时，直挂云帆济沧海。', '李白《行路难》'], ['不识庐山真面目，只缘身在此山中。', '苏轼《题西林壁》']]
+};
+function featTags(L, f) {
+  const tags = [];
+  if (f.falls) tags.push('瀑');
+  if (f.minY < 250) tags.push('高');
+  if (L.id === 'shen') tags.push('云');
+  if (f.waterRun > 120) tags.push('江');
+  if (f.std < 110) tags.push('平');
+  if (L.id === 'ping' && !tags.includes('平')) tags.push('平');
+  tags.push('山', '云');
+  return tags;
+}
+function pickPoem(L, f, rating, r) {
+  const tags = featTags(L, f), pick = a => a[(r() * a.length) | 0];
+  const first = pick(POEMS[tags[0]]);
+  let pool;
+  if (rating === '逸品') pool = POEMS.逸; else if (rating === '能品') pool = POEMS.励;
+  else pool = POEMS[tags.find(t => t !== tags[0]) || '山'];
+  let second = pick(pool), guard = 0; while (second[0] === first[0] && guard++ < 10) second = pick(pool);
+  return { type: 'ji', lines: [{ t: first[0], a: first[1] }, { t: second[0], a: second[1] }] };
+}
+function makeTitle(L, f, r) {
+  const pick = a => a[(r() * a.length) | 0];
+  const pre = { ping: ['江山平远', '秋江', '远浦', '平林'], gao: ['千岩', '万仞', '群峰', '层峦'], shen: ['烟岚', '云壑', '深谷', '重山'], free: ['溪山', '江山', '林泉', '云山'] }[L.id];
+  const p = pick(pre); if (p.length === 4) return p + '图';
+  let el = f.falls ? ['飞瀑', '鸣泉'] : f.waterRun > 120 ? ['渔舟', '归帆', '钓艇'] : f.minY < 260 ? ['叠翠', '孤亭'] : ['积翠', '清晓', '秋色', '晴岚'];
+  if (p === '层峦' && el.includes('叠翠')) el = ['孤亭'];
+  return p + pick(el) + '图';
+}
+function drawInscription(c, P, res) {
+  const I = P.ins; c.save(); c.fillStyle = 'rgba(32,27,22,.9)'; c.textAlign = 'center'; c.textBaseline = 'top';
+  const cols = [{ t: res.title, s: 44, b: true }];
+  const lines = res.poem.type === 'ai' ? res.poem.lines : res.poem.lines.flatMap(l => l.t.split(/[，。？！；]/).filter(Boolean));
+  for (const l of lines) cols.push({ t: l.replace(/[，。？！、；《》·\s]/g, ''), s: 33 });
+  cols.push({ t: res.name + '写', s: 27, sign: true });
+  let x = I.x;
+  for (const col of cols) {
+    const n = col.t.length, avail = col.sign ? I.h - 50 : I.h; let s = col.s; if (n * s * 1.12 > avail) s = Math.max(13, avail / (n * 1.12));
+    c.font = `${col.b ? 'bold ' : ''}${s}px ${FONT}`;
+    for (let i = 0; i < n; i++) c.fillText(col.t[i], x, I.top + i * s * 1.12);
+    if (col.sign) drawSeal(c, x, I.top + n * s * 1.12 + 28, 46, sealChars(res.name), .03);
+    x -= s * 1.38 + (col.b ? 10 : 0);
+  }
+  c.restore();
+}
+
+/* ---------------- 结算 ---------------- */
+const RANKS = ['能品', '妙品', '神品', '逸品'];
+function finish() {
+  const L = G.L, complete = G.penX >= L.len;
+  let score = G.score; if (complete && !L.free) score += 300 + Math.round(G.ink * 3); score = Math.max(0, score);
+  const ratio = G.sealTotal ? G.seals / G.sealTotal : 0;
+  let rating;
+  if (L.free) rating = '自在';
+  else if (!complete) rating = ratio >= .6 ? '妙品' : '能品';
+  else if (ratio >= .9 && G.breaks === 0 && G.lifts === 0 && G.ink >= 25) rating = '逸品';
+  else if (ratio >= .75 && G.breaks <= 1) rating = '神品';
+  else if (ratio >= .45) rating = '妙品';
+  else rating = '能品';
+  const seed = (Date.now() & 0xffff) + G.pts.length;
+  const P = buildPainting(G.pts, seed, { misty: L.id === 'shen' });
+  const r = mulberry32(seed + 3), name = playerName();
+  const res = { rating, score, complete, ratio, title: makeTitle(L, P.feat, r), poem: pickPoem(L, P.feat, rating, r), name,
+    seals: G.seals, sealTotal: G.sealTotal, breaks: G.breaks, lifts: G.lifts, ink: Math.round(G.ink), chi: Math.round(P.len / 100), level: L };
+  G.paint = P; G.res = res;
+  if (!L.free) { const best = store.get('ybjs_best', {}); const cur = best[L.id]; if (!cur || RANKS.indexOf(rating) > RANKS.indexOf(cur.rating) || (cur.rating === rating && score > cur.score)) { best[L.id] = { rating, score }; store.set('ybjs_best', best); } }
+  G.state = 'result'; G.reveal = 0; G.revealDone = false; G.cam = 0;
+  showLayer('result'); $('#resPanel').classList.remove('on'); $('#resTip').style.opacity = 1;
+  fillResPanel(); sReveal();
+  aiPoem(L, P.feat, res).then(ai => { if (ai && G.res === res) { res.title = ai.title || res.title; res.poem = { type: 'ai', lines: ai.lines }; fillResPanel(); } });
+}
+function fillResPanel() {
+  const r = G.res, L = r.level;
+  $('#resRating').textContent = r.rating;
+  $('#resTitle').textContent = '《' + r.title + '》';
+  $('#resMeta').textContent = `${r.name} 写 · ${L.name}之境` + (L.free ? '' : ` · 得分 ${r.score}`);
+  $('#resPoem').innerHTML = r.poem.type === 'ai'
+    ? `<div class="tag">AI 题诗</div>` + r.poem.lines.map(l => `<p>${esc(l)}</p>`).join('')
+    : `<div class="tag">AI 集句题跋 · 依画意选取古人诗句</div>` + r.poem.lines.map(l => `<p>${esc(l.t)}</p><small>—— ${esc(l.a)}</small>`).join('');
+  $('#resStats').textContent = L.free ? `卷长 ${r.chi} 尺` :
+    `朱印 ${r.seals}/${r.sealTotal} · 破白 ${r.breaks} · 断笔 ${r.lifts} · 余墨 ${r.ink}% · 卷长 ${r.chi} 尺${r.complete ? '' : ' · 未竟'}`;
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])); }
+
+function resLayout() {
+  const P = G.paint, top = Math.max(CH * .045, 12), rh = Math.min(CH * .42, CW * 1.05);
+  let tw = CW - 32, th = tw * 1000 / P.len; if (th > 56) { th = 56; tw = th * P.len / 1000; }
+  const ty = top + rh + 14; return { top, rh, tx: (CW - tw) / 2, ty, tw, th, panelTop: ty + th + 12 };
+}
+let lastPanelTop = -1;
+function updResult(dt) {
+  const P = G.paint, lay = resLayout(), k = lay.rh * DPR / 1000, vw = cv.width / k;
+  G.viewW = vw;
+  if (!G.revealDone) {
+    const T = clamp(P.len / 1300, 3.2, 5.5); G.reveal += P.len / T * dt;
+    G.cam = clamp(G.reveal - vw * .62, 0, Math.max(0, P.len - vw));
+    if (G.reveal >= P.len) revealFinish();
+  }
+  if (lay.panelTop !== lastPanelTop) { lastPanelTop = lay.panelTop; $('#resPanel').style.top = lay.panelTop + 'px'; }
+}
+function revealFinish() {
+  if (G.revealDone) return; G.revealDone = true; G.reveal = G.paint.len;
+  $('#resPanel').classList.add('on'); $('#resTip').style.opacity = 0; bell(784, .06, 1.6);
+}
+function renderResult() {
+  const P = G.paint, lay = resLayout(), d = DPR;
+  drawPaperScreen(0);
+  ctx.fillStyle = 'rgba(90,70,45,.1)'; ctx.fillRect(0, 0, cv.width, cv.height);
+  const ry = lay.top * d, rh = lay.rh * d, k = rh / 1000, vw = cv.width / k;
+  let cam = G.cam, ox = 0; if (vw >= P.len) { cam = 0; ox = (vw - P.len) / 2; }
+  ctx.fillStyle = '#c9b88f'; ctx.fillRect(0, ry - 7 * d, cv.width, rh + 14 * d);
+  ctx.fillStyle = 'rgba(80,60,35,.5)'; ctx.fillRect(0, ry - 7 * d, cv.width, 1.5 * d); ctx.fillRect(0, ry + rh + 5.5 * d, cv.width, 1.5 * d);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, ry, cv.width, rh); ctx.clip();
+  ctx.fillStyle = paperPat; ctx.fillRect(0, ry, cv.width, rh);
+  const rev = G.revealDone ? P.len : G.reveal, sw = Math.min(vw, rev - cam);
+  if (sw > 0) ctx.drawImage(P.canvas, cam * P.S, 0, sw * P.S, P.canvas.height, ox * k, ry, sw * k, rh);
+  ctx.setTransform(k, 0, 0, k, (ox - cam - P.xs) * k, ry);
+  if (rev > P.ins.x - P.xs + 30) drawInscription(ctx, P, G.res);
+  if (!G.revealDone) {
+    const ex = P.xs + G.reveal;
+    const g = ctx.createLinearGradient(ex - 170, 0, ex, 0); g.addColorStop(0, `rgba(${PAPER},0)`); g.addColorStop(1, `rgba(${PAPER},1)`);
+    ctx.fillStyle = g; ctx.fillRect(ex - 170, 0, 171, 1000);
+    drawStroke(ctx, G.pts, ex - 40, 1e9, 1);
+    ctx.fillStyle = 'rgba(214,170,80,.55)';
+    for (let i = 0; i < 14; i++) { const yy = 80 + ((i * 97 + performance.now() * .15) % 840); ctx.beginPath(); ctx.arc(ex + Math.sin(i * 3 + performance.now() / 300) * 8, yy, 2 + (i % 3), 0, 7); ctx.fill(); }
+  }
+  ctx.restore();
+  // 全卷缩略
+  if (G.reveal > 0) {
+    const tx = lay.tx * d, ty = lay.ty * d, tw = lay.tw * d, th = lay.th * d;
+    ctx.fillStyle = '#c9b88f'; ctx.fillRect(tx - 3 * d, ty - 3 * d, tw + 6 * d, th + 6 * d);
+    ctx.drawImage(P.canvas, 0, 0, P.canvas.width, P.canvas.height, tx, ty, tw, th);
+    if (!G.revealDone) { const rx = tx + tw * G.reveal / P.len; ctx.fillStyle = `rgba(${PAPER},1)`; ctx.fillRect(rx, ty, tx + tw - rx, th); }
+    if (vw < P.len) { ctx.strokeStyle = '#b2291f'; ctx.lineWidth = 1.6 * d; ctx.strokeRect(tx + tw * cam / P.len, ty, tw * vw / P.len, th); }
+  }
+}
+
+/* ---------------- 首页 ---------------- */
+function buildDemo() {
+  const r = mulberry32(2026), nz = makeNoise(r), pts = [];
+  for (let x = 0; x <= 3600; x += 6) pts.push({ x, y: clamp(590 + fbm(nz, x / 430, 4) * 520 + Math.sin(x / 900) * 60, 300, 870) });
+  G.demo = buildPainting(pts, 77, { S: .6 });
+  G.demo.feat; G.demoRes = null;
+}
+function renderHome(dt) {
+  const P = G.demo; if (!P) { drawPaperScreen(0); return; }
+  const k = cv.height / 1000, vw = cv.width / k, range = Math.max(1, P.len - vw);
+  G.homeT += dt * 22; const t = G.homeT % (2 * range), cam = t < range ? t : 2 * range - t;
+  ctx.drawImage(P.canvas, cam * P.S, 0, Math.min(vw, P.len) * P.S, P.canvas.height, 0, 0, Math.min(vw, P.len) * k, cv.height);
+  ctx.fillStyle = `rgba(${PAPER},.22)`; ctx.fillRect(0, 0, cv.width, cv.height);
+}
+function renderLevels() {
+  const best = store.get('ybjs_best', {});
+  $('#levels').innerHTML = LEVELS.map((L, i) => `<div class="lv${L.free ? ' free' : ''}" data-i="${i}"><b>${L.name}</b><i>${L.quote}</i><i>${L.desc}</i>${best[L.id] ? `<span class="best">${best[L.id].rating}</span>` : ''}</div>`).join('');
+  document.querySelectorAll('.lv').forEach(el => el.addEventListener('click', () => { store.set('ybjs_name', $('#nameIn').value.trim()); startLevel(LEVELS[+el.dataset.i]); }));
+}
+
+/* ---------------- 输入 ---------------- */
+function worldY(e) { const r = cv.getBoundingClientRect(); return clamp((e.clientY - r.top) / r.height * 1000, 110, 890); }
+let drag = null;
+cv.addEventListener('pointerdown', e => {
+  e.preventDefault(); initAudio();
+  try { cv.setPointerCapture(e.pointerId); } catch (_) { }
+  if (G.state === 'play') {
+    G.tY = worldY(e);
+    if (!G.started) { G.started = true; G.penY = G.tY; $('#hint').classList.remove('on'); }
+    if (G.paused) { G.paused = false; $('#pauseBox').classList.remove('on'); if (!G.L.free) { G.lifts++; G.score -= 80; G.fx.push({ k: 'txt', x: G.penX, y: G.penY - 50, s: '断笔 −80', c: '#5a4a3a', t: 0, life: 1 }); } }
+    G.drawing = true;
+  } else if (G.state === 'result') {
+    if (!G.revealDone) { revealFinish(); return; }
+    const r = cv.getBoundingClientRect(), y = e.clientY - r.top, x = e.clientX - r.left, lay = resLayout();
+    if (y > lay.ty - 12 && y < lay.ty + lay.th + 12) { drag = { thumb: true }; setCamFromThumb(x, lay); }
+    else if (y > lay.top && y < lay.top + lay.rh) drag = { x: e.clientX, cam: G.cam };
+  }
+});
+function setCamFromThumb(x, lay) { const P = G.paint; G.cam = clamp((x - lay.tx) / lay.tw * P.len - G.viewW / 2, 0, Math.max(0, P.len - G.viewW)); }
+cv.addEventListener('pointermove', e => {
+  if (G.state === 'play' && G.drawing) G.tY = worldY(e);
+  else if (G.state === 'result' && drag) {
+    const lay = resLayout();
+    if (drag.thumb) setCamFromThumb(e.clientX - cv.getBoundingClientRect().left, lay);
+    else { const k = lay.rh / 1000; G.cam = clamp(drag.cam - (e.clientX - drag.x) / k, 0, Math.max(0, G.paint.len - G.viewW)); }
+  }
+});
+function liftPen() {
+  drag = null;
+  if (G.state === 'play' && G.drawing) { G.drawing = false; if (G.started) { G.paused = true; $('#pauseBox').classList.add('on'); } }
+}
+cv.addEventListener('pointerup', liftPen); cv.addEventListener('pointercancel', liftPen);
+cv.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('visibilitychange', () => { if (document.hidden) liftPen(); });
+
+$('#btnQuit').onclick = () => { G.state = 'home'; showLayer('home'); renderLevels(); };
+$('#btnFinish').onclick = () => endGame('收笔');
+$('#btnAgain').onclick = () => startLevel(G.res.level);
+$('#btnHome').onclick = () => { G.state = 'home'; showLayer('home'); renderLevels(); };
+$('#btnHow').onclick = () => openModal('howM');
+$('#btnMute').onclick = () => { initAudio(); setMute(!muted); };
+$('#btnSet').onclick = () => { const a = store.get('ybjs_ai', {}); $('#aiUrl').value = a.url || ''; $('#aiModel').value = a.model || ''; $('#aiKey').value = a.key || ''; openModal('setM'); };
+$('#aiSave').onclick = () => { store.set('ybjs_ai', { url: $('#aiUrl').value.trim(), model: $('#aiModel').value.trim(), key: $('#aiKey').value.trim() }); $('#setM').classList.remove('on'); };
+$('#aiClear').onclick = () => { store.set('ybjs_ai', {}); $('#aiUrl').value = $('#aiModel').value = $('#aiKey').value = ''; };
+$('#btnShare').onclick = () => {
+  const url = makeShareImage(); $('#shareImg').src = url; $('#dl').href = url; $('#dl').download = `一笔江山-${G.res.title}.jpg`; openModal('shareM');
+};
+
+/* ---------------- 大模型题诗（可选） ---------------- */
+async function aiPoem(L, f, res) {
+  const cfg = store.get('ybjs_ai', {}); if (!cfg.url || !cfg.key) return null;
+  const desc = [`${L.name}之境`, `主峰约${Math.max(1, f.peaks)}座`, f.minY < 260 ? '主峰高耸入云' : '山势舒缓', f.falls ? '山间有飞瀑' : '', f.waterRun > 120 ? '江面开阔，有渔舟' : '江上有小舟', L.id === 'shen' ? '云气重重' : '', f.hasPav ? '峰顶有亭' : '', `画品为${res.rating}`].filter(Boolean).join('；');
+  const prompt = `你是一位宋代文人画家。请为一幅青绿山水长卷题画。画面：${desc}。要求：原创一首七言绝句，意境与画面相合，不要照搬古人成句；再起一个四到六字、以“图”字结尾的画名。只输出 JSON：{"title":"…图","poem":["第一句","第二句","第三句","第四句"]}，诗句不带标点。`;
+  const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 9000);
+  try {
+    const rsp = await fetch(cfg.url, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.key },
+      body: JSON.stringify({ model: cfg.model || 'deepseek-chat', temperature: .9, messages: [{ role: 'user', content: prompt }] }) });
+    const data = await rsp.json(); const txt = data.choices[0].message.content; const m = txt.match(/\{[\s\S]*\}/); const j = JSON.parse(m[0]);
+    const lines = (j.poem || []).map(s => String(s).replace(/[，。,.\s]/g, '').slice(0, 9)).filter(Boolean).slice(0, 4);
+    if (lines.length < 4) return null;
+    return { title: String(j.title || '').replace(/[《》\s]/g, '').slice(0, 8), lines };
+  } catch (e) { return null; } finally { clearTimeout(tm); }
+}
+
+/* ---------------- 分享长卷图 ---------------- */
+function makeShareImage() {
+  const P = G.paint, r = G.res, W = 1080, pad = 64, pw = W - pad * 2;
+  const rows = P.len > 2800 ? 2 : 1, seg = P.len / rows;
+  let rowH = Math.round(pw * 1000 / seg), rowW = pw; if (rowH > 620) { rowH = 620; rowW = Math.round(rowH * seg / 1000); }
+  const poemH = r.poem.type === 'ai' ? 4 * 64 + 40 : 2 * 104 + 40;
+  const H = 250 + rows * (rowH + 40) + poemH + 70 + 170;
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  g.fillStyle = g.createPattern(paperTile, 'repeat'); g.fillRect(0, 0, W, H);
+  g.fillStyle = 'rgba(120,90,50,.08)'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = 'rgba(90,64,36,.5)'; g.lineWidth = 2; g.strokeRect(24, 24, W - 48, H - 48); g.lineWidth = 1; g.strokeRect(32, 32, W - 64, H - 64);
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#1d1a16';
+  g.font = `bold 66px ${FONT}`; g.fillText('《' + r.title + '》', W / 2, 128);
+  g.font = `30px ${FONT}`; g.fillStyle = '#5b4f40'; g.fillText(`${r.name} 写  ·  ${r.level.name}之境${r.level.free ? '' : '  ·  得分 ' + r.score}`, W / 2, 194);
+  let y = 250; const x0 = (W - rowW) / 2;
+  for (let i = 0; i < rows; i++) {
+    g.fillStyle = '#c9b88f'; g.fillRect(x0 - 12, y - 12, rowW + 24, rowH + 24);
+    g.fillStyle = 'rgba(80,60,35,.55)'; g.fillRect(x0 - 12, y - 12, rowW + 24, 2); g.fillRect(x0 - 12, y + rowH + 10, rowW + 24, 2);
+    g.drawImage(P.canvas, i * seg * P.S, 0, seg * P.S, P.canvas.height, x0, y, rowW, rowH);
+    g.save(); g.beginPath(); g.rect(x0, y, rowW, rowH); g.clip(); const k = rowH / 1000; g.setTransform(k, 0, 0, k, x0 - (P.xs + i * seg) * k, y); drawInscription(g, P, r); g.restore();
+    y += rowH + 40;
+  }
+  drawSeal(g, x0 + rowW - 70, y - 40 - 70, 112, [...r.rating], -.08, .9);
+  y += 20; g.fillStyle = '#1d1a16'; g.textAlign = 'center';
+  g.font = `22px ${FONT}`; g.fillStyle = '#b2291f'; g.fillText(r.poem.type === 'ai' ? '— AI 题诗 —' : '— AI 集句题跋 —', W / 2, y); y += 52;
+  if (r.poem.type === 'ai') { g.fillStyle = '#1d1a16'; g.font = `44px ${FONT}`; for (const l of r.poem.lines) { g.fillText(l, W / 2, y); y += 64; } }
+  else for (const l of r.poem.lines) { g.fillStyle = '#1d1a16'; g.font = `42px ${FONT}`; g.fillText(l.t, W / 2, y); g.fillStyle = '#6f6352'; g.font = `24px ${FONT}`; g.fillText('—— ' + l.a, W / 2, y + 46); y += 104; }
+  y += 10; g.font = `26px ${FONT}`; g.fillStyle = '#4a4034';
+  g.fillText(r.level.free ? `卷长 ${r.chi} 尺` : `朱印 ${r.seals}/${r.sealTotal}  ·  破白 ${r.breaks}  ·  断笔 ${r.lifts}  ·  余墨 ${r.ink}%  ·  卷长 ${r.chi} 尺`, W / 2, y);
+  const fy = H - 120; g.strokeStyle = 'rgba(90,64,36,.35)'; g.beginPath(); g.moveTo(80, fy - 40); g.lineTo(W - 80, fy - 40); g.stroke();
+  g.textAlign = 'left'; g.fillStyle = '#1d1a16'; g.font = `bold 50px ${FONT}`; g.fillText('一笔江山', 80, fy + 6);
+  g.font = `24px ${FONT}`; g.fillStyle = '#5b4f40'; g.fillText('以 AI 为笔 · 一笔画出你的千里江山', 80, fy + 54);
+  drawSeal(g, W - 140, fy + 18, 96, sealChars(r.name), .05);
+  try { return c.toDataURL('image/jpeg', .9); } catch (e) { return ''; }
+}
+
+/* ---------------- HUD / 主循环 ---------------- */
+let hudT = 0;
+function updateHUD() {
+  if (!G.L) return;
+  const f = $('#inkFill'); f.style.width = clamp(G.ink, 0, 100) + '%'; f.classList.toggle('low', G.ink < 22);
+  $('#hudSeal').textContent = `${G.seals}/${G.sealTotal}`; $('#hudScore').textContent = Math.max(0, G.score);
+  $('#prog').style.width = clamp(G.penX / G.L.len * 100, 0, 100) + '%';
+}
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (G.state === 'home') renderHome(dt);
+  else if (G.state === 'play' || G.state === 'ending') { if (G.state === 'play') updPlay(dt); else G.fx = G.fx.filter(f => (f.t += dt) < f.life); renderPlay(); if ((hudT += dt) > .06) { hudT = 0; updateHUD(); } }
+  else if (G.state === 'result') { updResult(dt); renderResult(); }
+  requestAnimationFrame(frame);
+}
+
+$('#nameIn').value = store.get('ybjs_name', '');
+setMute(muted);
+renderLevels();
+drawPaperScreen(0);
+setTimeout(() => { buildDemo(); }, 30);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
